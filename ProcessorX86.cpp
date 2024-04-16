@@ -3,6 +3,9 @@
 #include <cstdint>
 #include <iomanip>
 #include <string>
+#include <thread>
+#include <mutex>
+#include <stdexcept>
 
 class CPU {
 private:
@@ -165,5 +168,52 @@ int main() {
 
     processor.executeProgram(program);
 
-    return 0;
 }
+class Core {
+
+class Memory {
+private:
+    std::vector<char> ram;
+    std::mutex mutex;
+
+public:
+    Memory() : ram(RAM_SIZE) {}
+
+    char readMemory(size_t address) {
+        std::lock_guard<std::mutex> lock(mutex);
+    }
+
+    void writeMemory(size_t address, char data) {
+        std::lock_guard<std::mutex> lock(mutex);
+    }
+};
+
+class Processor {
+private:
+    std::vector<Core> cores;
+    Memory memory;
+
+public:
+    Processor() : cores(NUM_CORES) {}
+
+    void executeProgram(std::vector<Instruction>& program) {
+
+        std::vector<std::thread> threads;
+        for (int i = 0; i < NUM_CORES; ++i) {
+            threads.emplace_back([this, &program, i]() {
+                try {
+                    for (auto instr : program) {
+                        cores[i].executeInstruction(instr);
+                    }
+                } catch (const std::exception& e) {
+                    std::cerr << "Task failed on core " << i << ": " << e.what() << std::endl;
+                }
+            });
+        }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+    }
+return 0;
+};
