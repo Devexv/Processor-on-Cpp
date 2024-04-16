@@ -2,6 +2,7 @@
 #include <vector>
 #include <cstdint>
 #include <iomanip>
+#include <string>
 
 class CPU {
 private:
@@ -85,5 +86,84 @@ int main() {
     cpu.loadProgram(program);
     cpu.run();
     cpu.printRegisters();
+    
+const int NUM_CORES = 16;
+const int CORE_FREQ = 3000000000;
+const int L1_CACHE_SIZE = 32768;
+const int L2_CACHE_SIZE = 262144;
+const int L3_CACHE_SIZE = 8388608; 
+const int RAM_SIZE = 8589934592; 
+
+enum class Instruction {
+    ADD,
+    SUB,
+    MUL,
+    DIV,
+    LOAD,
+    STORE,
+    JUMP,
+    COMPARE,
+    BRANCH,
+};
+
+class Core {
+private:
+    std::vector<int> registers;
+    std::vector<char> L1_cache;
+    std::vector<char> L2_cache;
+
+public:
+    Core() : registers(16), L1_cache(L1_CACHE_SIZE), L2_cache(L2_CACHE_SIZE) {}
+
+    // Execute an instruction
+    void executeInstruction(Instruction instr) {
+    }
+};
+
+class Memory {
+private:
+    std::vector<char> ram;
+
+public:
+    Memory() : ram(RAM_SIZE) {}
+
+    char readMemory(size_t address) {
+    }
+
+    void writeMemory(size_t address, char data) {
+    }
+};
+
+class Processor {
+private:
+    std::vector<Core> cores;
+    Memory memory;
+
+public:
+    Processor() : cores(16) {}
+
+    void executeProgram(std::vector<Instruction>& program) {
+
+        std::vector<std::thread> threads;
+        for (int i = 0; i < NUM_CORES; ++i) {
+            threads.emplace_back([this, &program, i]() {
+                for (auto instr : program) {
+                    cores[i].executeInstruction(instr);
+                }
+            });
+        }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+    }
+};
+
+int main() {
+    Processor processor;
+    std::vector<Instruction> program = {Instruction::LOAD, Instruction::ADD, Instruction::STORE /* Load successfully */};
+
+    processor.executeProgram(program);
+
     return 0;
 }
