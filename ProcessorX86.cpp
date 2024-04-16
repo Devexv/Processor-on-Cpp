@@ -6,6 +6,9 @@
 #include <thread>
 #include <mutex>
 #include <stdexcept>
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
 
 class CPU {
 private:
@@ -215,5 +218,60 @@ public:
             thread.join();
         }
     }
+public:
+    Core() : registers(16), L1_cache(L1_CACHE_SIZE), L2_cache(L2_CACHE_SIZE) {}
+
+    // Execute an instruction
+    void executeInstruction(const std::string& code) {
+        std::string command = "g++ -o temp_program temp_program.cpp && ./temp_program";
+        std::ofstream file("temp_program.cpp");
+        file << code;
+        file.close();
+        system(command.c_str());
+    }
+};
+
+class Memory {
+private:
+    std::vector<char> ram;
+    std::mutex mutex;
+
+public:
+    Memory() : ram(RAM_SIZE) {}
+
+    char readMemory(size_t address) {
+        std::lock_guard<std::mutex> lock(mutex);
+    }
+
+    void writeMemory(size_t address, char data) {
+        std::lock_guard<std::mutex> lock(mutex);
+    }
+};
+
+class Processor {
+private:
+    std::vector<Core> cores;
+    Memory memory;
+
+public:
+    Processor() : cores(NUM_CORES) {}
+
+    void executeProgram(const std::vector<std::string>& programs) {
+        std::vector<std::thread> threads;
+        for (int i = 0; i < NUM_CORES && i < programs.size(); ++i) {
+            threads.emplace_back([this, &programs, i]() {
+                try {
+                    cores[i].executeInstruction(programs[i]);
+                } catch (const std::exception& e) {
+                    std::cerr << "Task failed on core " << i << ": " << e.what() << std::endl;
+                }
+            });
+        }
+
+        for (auto& thread : threads) {
+            thread.join();
+        }
+    }
+}
 return 0;
 };
